@@ -1,106 +1,83 @@
 <?php 
     require_once "include/header.php";
 ?>
+<?php
 
-<section id="contentSection">
-    <div class="row">
-        <div class="col-lg3-3 col-md-3 col-sm-12">
-         <div class="left_content">
-          <div class="contact_area">
-              <h2>ABOUT US</h2>                   
-          </div>
-         </div>
-        </div>
-        <div class="col-lg-6"> <br> <br>
-            <?php      
-                    $get_about_us = "SELECT * FROM about_us ORDER BY id DESC LIMIT 1";
-                    $result_about_us = mysqli_query($conn , $get_about_us);
-                    if($result_about_us){
-                        while( $about_us_rows = mysqli_fetch_assoc($result_about_us) ){
-                                echo $about_us_rows["about"] . "<br>";
-                        }
-                    }
-            ?>
+            // databse connection
+            require_once "include/connection.php";
 
-        </div>
-        <!-- row end -->
-    </div>
-</section>
+            $get_existing_about = "SELECT * FROM about_us ORDER BY id DESC LIMIT 1";
+            $existing_about_result = mysqli_query($conn , $get_existing_about);
 
-<!-- footer -->
-<footer id="footer">
-    <div class="footer_top">
-      <div class="row">
-        <div class="col-lg-6 col-md-6 col-sm-12">
-          <div class="footer_widget wow fadeInDown">
-            <h2>Important Links</h2>
-            <ul class="tag_nav">
-            <!-- <li><a href="#">Log-in / Sign-Up</a></li> -->
-               <!-- adding category----------------------------------------------------------------- -->
-               <?php 
-               
-                $get_category = "SELECT * FROM post_category";
-                $result = mysqli_query($conn , $get_category);
-                if($result){
-                  while ( $rows =  mysqli_fetch_assoc($result) ){
-                    $c_name = $rows["c_name"]
-              ?> 
-                <li><a href="read-category.php?category=<?php echo $c_name; ?> "> <?php echo ucwords($c_name); ?></a></li>
-                      <?php
-                        }
-                    }
-                  ?>
-                <!-- end of adding category---------------------------------------------------------  -->
-            </ul>
-          </div>
-        </div>
-        <div class="col-lg-6 col-md-6 col-sm-12">
-          <div class="footer_widget wow fadeInRightBig">
-          <?php 
-                $get_details = "SELECT * FROM contact_us ORDER BY id DESC LIMIT 1";
-                $get_details_result = mysqli_query($conn , $get_details);
-
-                if($get_details_result){
-                  while ($rows = mysqli_fetch_assoc($get_details_result) ){
-
-                    $address = ucwords($rows["address"]);
-                    $phn = $rows["phn"];
-                    $email = ucfirst($rows["email"]);
-                    $fax = $rows["fax"];
-              ?>
-             
-            <h2>Contact</h2>
-            <p>Contact Us any time. We're open for any suggestion or just to have a chat.</p>
-            <address>
-          
-              <P> Address : <?php echo $address; ?></P>
-              <P>  Phone: <a  style="color:rgb(218,218,218);" href="tel:<?php echo $phn ?>"> <?php echo $phn; ?> </a></P>
-              <p>Email : <a style="color:rgb(218,218,218);" href = "mailto:<?php echo $email; ?>"> <?php echo $email; ?> </a> </p>
-              <p>Fax : <a style="color:rgb(218,218,218);" href="fax:<?php echo $fax; ?>"> <?php echo $fax; ?> </a> </p>
-            </address>
-
-            <?php 
-              }
+            if($existing_about_result){
+                while($existing_about = mysqli_fetch_assoc($existing_about_result)){
+                    $about = $existing_about["about"];
+                }
             }
-            ?>
-          </div>
+
+    $about_err ="";
+    
+
+    if($_SERVER["REQUEST_METHOD"] == "POST"){
+       
+        if( empty($_REQUEST["about"]) ){
+            $about_err = "<p style='color:red'>* About can not be empty</p>";
+            $about = "";
+        }else{
+            $about = $_REQUEST["about"];
+
+            $insert_about = "INSERT INTO about_us(about) VALUES('$about')";
+            $insert_about_result = mysqli_query($conn , $insert_about);
+
+            if($insert_about_result){
+                echo "<script>
+                $(document).ready( function(){
+                    $('#showModal').modal('show');
+                    $('#linkBtn').hide();
+                    $('#addMsg').text('About Us Section Updated Successfully!');
+                    $('#closeBtn').text('OK');
+                })
+             </script>
+             ";
+            }
+        }
+
+        
+    }
+
+
+?>
+<!-- ckeditor js -->
+<script src="include/ckeditor/ckeditor.js"></script>
+
+<div class="container mb-5">
+    <div id="form" class="pt-5 form-input-content">
+        <div class="card login-form mb-0">
+            <div class="card-body pt-3 shadow">
+                <h4 class="text-center">Add About Us Section </h4>
+                <form method="POST" enctype="multipart/form-data" action=" <?php htmlspecialchars($_SERVER['PHP_SELF']) ?>"> 
+                       
+                    <div class="form-group">
+                        <label> <h4 class="pt-4">About Us: </h4> </label>
+                        <textarea name="about" id="about"> <?php echo $about; ?></textarea>    
+                        <?php echo $about_err; ?>  
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="submit" value="Add" class="btn login-form__btn submit w-10 " name="submit_expense" >
+                    </div>
+                </form>
+            </div>
+            <!-- ckeditor function call -->
+            <script>
+                CKEDITOR.replace('about');
+            </script>
         </div>
-      </div>
     </div>
-    <div class="footer_bottom">
-      <p class="copyright">Copyright &copy; <?php echo date("Y" , strtotime("now") ); ?> <a href="./index.php">NewsFeed</a></p>
-      <p class="developer" style="color:white;">Developed By Priya</p>
-      <!-- Wpfreeware -->
-    </div>
-  </footer>
 </div>
-<script src="assets/js/jquery.min.js"></script> 
-<script src="assets/js/wow.min.js"></script> 
-<script src="assets/js/bootstrap.min.js"></script> 
-<script src="assets/js/slick.min.js"></script> 
-<script src="assets/js/jquery.li-scroller.1.0.js"></script> 
-<script src="assets/js/jquery.newsTicker.min.js"></script> 
-<script src="assets/js/jquery.fancybox.pack.js"></script> 
-<script src="assets/js/custom.js"></script>
-</body>
-</html>
+
+
+
+<?php
+    require_once "include/footer.php";
+?>

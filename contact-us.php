@@ -1,151 +1,142 @@
-<?php
+<?php 
     require_once "include/header.php";
 ?>
 
+<?php 
+        
+        require_once "include/connection.php";
 
+        $get_existing_contact = "SELECT * FROM contact_us ORDER BY id DESC LIMIT 1";
+        $existing_contact_result = mysqli_query($conn , $get_existing_contact);
 
-<section id="contentSection">
-    <div class="row">
-
-        <div class="col-12">
-         <div class="left_content">
-          <div class="contact_area">
-            <h2> Visit us anytime </h2>
-            <?php 
-                $get_details = "SELECT * FROM contact_us ORDER BY id DESC LIMIT 1";
-                $get_details_result = mysqli_query($conn , $get_details);
-
-                if($get_details_result){
-                  while ($rows = mysqli_fetch_assoc($get_details_result) ){
-
-                    $address = ucwords($rows["address"]);
-                    $phn = $rows["phn"];
-                    $email = ucfirst($rows["email"]);
-                    $fax = $rows["fax"];
-                    ?>
-            <iframe src="https://www.google.com/maps?q=<?php echo $address; ?>&output=embed" style="border:3; height:400px; width:100%;" allowfullscreen="" loading="lazy"></iframe>
-           </div>
-        </div>
-        </div>
-      <div class="col-lg-6 col-md-6 col-sm-6">
-        <div class="left_content">
-          <div class="contact_area">
-            <h2>Contact Us</h2>
-            <h4 class="text-center">We're open for any suggestion or just to have a chat</h4>
-            <form action="#" class="contact_form">
-              <input class="form-control" type="text" placeholder="Name*">
-              <input class="form-control" type="email" placeholder="Email*">
-              <textarea class="form-control" cols="30" style="resize: none;" rows="10" placeholder="Message*"></textarea>
-              <input type="submit" value="Send Message">
-            </form>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-6 col-md-6 col-sm-6">
-          <div class="right_content" style=" position: relative;">
-            <div class="contact_area" style="font-size:20px;" >
-
-              <h2>Get In Touch</h2>
-
-              <p ><i style="font-size:29px;" class="fa fa-map-marker" aria-hidden="true"></i>
-                &nbsp;&nbsp;  
-                Address: <span style="text-align: justify; width: 100px;"> <?php echo $address; ?> </span>
-               </p>
-
-              <p><i style="font-size:29px;" class="fa fa-phone" aria-hidden="true"></i> 
-                &nbsp;&nbsp; Phone: <a href="tel:<?php echo $phn ?>"> <?php echo $phn; ?> </a> </p>
-
-                
-                <p ><i style="font-size:29px;" class="fa fa-location-arrow fa-10x" aria-hidden="true"></i>
-                &nbsp; &nbsp; Email: <a href = "mailto:<?php echo $email; ?>"> <?php echo $email; ?> </a></p>
-                
-                <p><i class="fa fa-fax" aria-hidden="true"></i>
-                &nbsp;&nbsp; Fax: <a href="fax:<?php echo $fax; ?>"> <?php echo $fax; ?> </a>
-              </p>
-
-              <?php
-                  }
-                }
-            ?>
-            </div>
-          </div>
-      </div>
-      <!-- closing row -->
-  </div>
-</section>
-  <footer id="footer">
-    <div class="footer_top">
-      <div class="row">
-        <div class="col-lg-6 col-md-6 col-sm-12">
-          <div class="footer_widget wow fadeInDown">
-            <h2>Important Links</h2>
-            <ul class="tag_nav">
-            <!-- <li><a href="#">Log-in / Sign-Up</a></li> -->
-               <!-- adding category----------------------------------------------------------------- -->
-               <?php 
-               
-                $get_category = "SELECT * FROM post_category";
-                $result = mysqli_query($conn , $get_category);
-                if($result){
-                  while ( $rows =  mysqli_fetch_assoc($result) ){
-                    $c_name = $rows["c_name"]
-              ?> 
-                <li><a href="read-category.php?category=<?php echo $c_name; ?> "> <?php echo ucwords($c_name); ?></a></li>
-                      <?php
-                        }
-                    }
-                  ?>
-                <!-- end of adding category---------------------------------------------------------  -->
-            </ul>
-          </div>
-        </div>
-        <div class="col-lg-6 col-md-6 col-sm-12">
-          <div class="footer_widget wow fadeInRightBig">
-          <?php 
-                $get_details = "SELECT * FROM contact_us ORDER BY id DESC LIMIT 1";
-                $get_details_result = mysqli_query($conn , $get_details);
-
-                if($get_details_result){
-                  while ($rows = mysqli_fetch_assoc($get_details_result) ){
-
-                    $address = ucwords($rows["address"]);
-                    $phn = $rows["phn"];
-                    $email = ucfirst($rows["email"]);
-                    $fax = $rows["fax"];
-              ?>
-             
-            <h2>Contact</h2>
-            <p>Contact Us any time. We're open for any suggestion or just to have a chat.</p>
-            <address>
-          
-              <P> Address : <?php echo $address; ?></P>
-              <P>  Phone: <a  style="color:rgb(218,218,218);" href="tel:<?php echo $phn ?>"> <?php echo $phn; ?> </a></P>
-              <p>Email : <a style="color:rgb(218,218,218);" href = "mailto:<?php echo $email; ?>"> <?php echo $email; ?> </a> </p>
-              <p>Fax : <a style="color:rgb(218,218,218);" href="fax:<?php echo $fax; ?>"> <?php echo $fax; ?> </a> </p>
-            </address>
-
-            <?php 
-              }
+        if($existing_contact_result){
+            while($existing_contact = mysqli_fetch_assoc($existing_contact_result)){
+                $address = $existing_contact["address"];
+                $phn_no = $existing_contact["phn"];
+                $email = $existing_contact["email"];
+                $fax = $existing_contact["fax"]; 
             }
-            ?>
-          </div>
+        }
+
+        $address_err = $phn_no_err = $email_err =  $fax_err =  "";
+        $phn_no_invalid = $email_invalid = $fax_invalid = "";
+        
+    if($_SERVER["REQUEST_METHOD"] == "POST"){
+        
+        // validate address
+        if(empty($_REQUEST["address"])){
+            $address_err =  "<p style='color:red'> * Address is Required </p>";
+            $address = "";
+        }else{
+            $address = $_REQUEST["address"];
+        }
+
+        // validate phone number
+        if( empty($_REQUEST["phn"]) ){
+            $phn_no_err = "<p style='color:red'> * Phone Number is Required </p>";
+            $phn_no = "";
+        }elseif(preg_match('/[a-zA-Z]/', $_REQUEST["phn"] ) ){ 
+            $phn_no_err = "<p style='color:red'> * Only Numbers Allowed</p>";
+            $phn_no_invalid = $_REQUEST["phn"];
+            $phn_no = "";
+        }else{
+            $phn_no = $_REQUEST["phn"];
+        }
+
+        // validate email
+        if( empty($_REQUEST["email"])){
+            $email_err = "<p style='color:red'> * Email is Required </p>";
+            $email = "";
+        }elseif( !preg_match('/[@]/' , $_REQUEST["email"]) ){
+            $email_err = "<p style='color:red'> * Email is Invalid </p>";
+            $email_invalid = $_REQUEST["email"];
+            $email = "";
+        }else {
+            $email = $_REQUEST["email"];
+        }
+
+        // validate fax    
+        if( empty($_REQUEST["fax"]) ){
+            $fax_err = "<p style='color:red'> * Fax Number is Required </p>";
+            $fax = "";
+        }elseif(preg_match('/[a-zA-Z]/', $_REQUEST["fax"] ) ){ 
+            $fax_err = "<p style='color:red'> * Only Numbers Allowed</p>";
+            $fax_invalid = $_REQUEST["fax"];
+            $fax = "";
+        }else{
+            $fax = $_REQUEST["fax"];
+        }
+
+        // if everyting got everything from user
+        if(!empty($email) && !empty($address) && !empty($phn_no) && !empty($fax)){
+
+            // database connection
+            require_once "include/connection.php";
+
+            $add_details  = "INSERT INTO contact_us(address , phn , email , fax) VALUES( '$address' , '$phn_no', '$email' , '$fax'  )";
+            $result = mysqli_query($conn , $add_details);
+
+            if($result){
+                $address = $phn_no = $email = $fax =  "";
+                 echo "<script>
+                $(document).ready( function(){
+                    $('#showModal').modal('show');
+                    $('#linkBtn').hide();
+                    $('#addMsg').text('Contact Details Updated Successfully!');
+                    $('#closeBtn').text('OK');
+                })
+             </script>
+             ";
+            }
+        }
+    }
+?>
+
+<div class="login-form-bg h-100">
+        <div class="container mt-5 h-100">
+            <div class="row justify-content-center h-200">
+                <div class="col-xl-6">
+                    <div class="form-input-content">
+                        <div class="card login-form mb-0">
+                            <div class="card-body pt-5 shadow">                       
+                                    <h4 class="text-center pb-3">Add Contact Details</h4>
+                                <form method="POST" action=" <?php htmlspecialchars($_SERVER['PHP_SELF']) ?>">
+                            
+                                <div class="form-group">
+                                    <label >Address :</label>
+                                    <input type="text" class="form-control" value="<?php  echo $address; ?>"  name="address" >  
+                                    <?php echo $address_err; ?>
+                                </div>
+                                <div class="form-group">
+                                    <label >Phone No. :</label>
+                                    <input type="text" class="form-control" value="<?php if(empty($phn_no)){ echo $phn_no_invalid;}else{echo $phn_no;}  ?>"  name="phn" > 
+                                    <?php echo $phn_no_err; ?> 
+                                </div>
+
+                                <div class="form-group">
+                                    <label >Email :</label>
+                                    <input type="text" class="form-control" value="<?php if(empty($email)){ echo $email_invalid;}else{echo $email;} ?>"  name="email" >  
+                                    <?php echo $email_err; ?>
+                                </div>
+
+                                <div class="form-group">
+                                    <label >Fax :</label>
+                                    <input type="text" class="form-control" value="<?php if(empty($fax)){ echo $fax_invalid;}else{echo $fax;} ?>"  name="fax" >  
+                                    <?php echo $fax_err; ?>
+                                </div>
+
+                                <button type="submit" class=" btn btn-primary btn-block">Add</button>
+                                  </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    <div class="footer_bottom">
-      <p class="copyright">Copyright &copy; <?php echo date("Y" , strtotime("now") ); ?> <a href="./index.php">NewsFeed</a></p>
-      <p class="developer" style="color:white;">Developed By Priya</p>
-      <!-- Wpfreeware -->
-    </div>
-  </footer>
 </div>
-<script src="assets/js/jquery.min.js"></script> 
-<script src="assets/js/wow.min.js"></script> 
-<script src="assets/js/bootstrap.min.js"></script> 
-<script src="assets/js/slick.min.js"></script> 
-<script src="assets/js/jquery.li-scroller.1.0.js"></script> 
-<script src="assets/js/jquery.newsTicker.min.js"></script> 
-<script src="assets/js/jquery.fancybox.pack.js"></script> 
-<script src="assets/js/custom.js"></script>
-</body>
-</html>
+
+
+<?php 
+    require_once "include/footer.php";
+?>

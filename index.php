@@ -1,103 +1,168 @@
 <?php 
+    require_once "include/header.php";
+?>
 
-session_start();
+<?php
+//  database connection
+require_once "include/connection.php";
 
-	include("connection.php");
-	include("functions.php");
+// total no of post
+$select_total_post = "SELECT * FROM post_description WHERE p_time IS NOT NULL";
+$total_post_result  = mysqli_query($conn , $select_total_post);
 
 
-	if($_SERVER['REQUEST_METHOD'] == "POST")
-	{
-		//something was posted
-		$user_name = $_POST['user_name'];
-		$password = $_POST['password'];
+// selecting category details
+$sql = "SELECT * FROM post_category";
+$result = mysqli_query($conn , $sql);
+$i = 1;
 
-		if(!empty($user_name) && !empty($password) && !is_numeric($user_name))
-		{
 
-			//read from database
-			$query = "select * from users where user_name = '$user_name' limit 1";
-			$result = mysqli_query($con, $query);
+// selecting about us
+$about_us = "";
+$get_about = "SELECT * FROM about_us ORDER BY id DESC LIMIT 1";
+$get_about_result = mysqli_query($conn , $get_about);
 
-			if($result)
-			{
-				if($result && mysqli_num_rows($result) > 0)
-				{
+if($get_about_result){
 
-					$user_data = mysqli_fetch_assoc($result);
-					
-					if($user_data['password'] === $password)
-					{
+    while($about_row = mysqli_fetch_assoc($get_about_result)){
+       $about_us = $about_row["about"];
+    } 
+}
 
-						$_SESSION['user_id'] = $user_data['user_id'];
-						header("Location: index1.php");
-						die;
-					}
-				}
-			}
-			
-			echo "wrong username or password!";
-		}else
-		{
-			echo "wrong username or password!";
-		}
-	}
+
+// selecting contact details
+$phn_no = $email = $fax_no = $address = "";
+$get_contact = "SELECT * FROM contact_us ORDER BY id DESC LIMIT 1";
+$get_contact_result = mysqli_query($conn , $get_contact);
+
+if($get_contact_result){
+
+    while($contact_row = mysqli_fetch_assoc($get_contact_result)){
+        $phn_no = $contact_row["phn"];
+        $email = $contact_row["email"];
+        $fax_no = $contact_row["fax"];
+        $address = $contact_row["address"];
+    } 
+}
 
 ?>
 
+<style>
+table, th, td {
+  border: 1px solid black;
+  padding: 5px;
+}
+table {
+  border-spacing: 10px;
+}
+</style>
 
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Login</title>
-</head>
-<body style="background-image: url('news.jpg'); background-repeat: no-repeat; background-attachment: fixed; 
-  background-size: 100% 100%;">
-	<style type="text/css">
+<div class="container mb-5">
+    <div class="row mt-5">
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="card shadow " >
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center">Post Categories</li>
+                    <li class="list-group-item">Total Category: <span class="text-center"> <?php echo mysqli_num_rows($result); ?> </span> </li>
+                    <li class="list-group-item text-center"><a href="manage-category.php"><b>View All Categories</b></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="card shadow " >
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center">Category's Detail</li>
+                    <li class="list-group-item">
+                         <table style="width:100%" class="table-hover text-center ">
+                             <tr class="bg-dark">
+                                  <th>Category Name</th>
+                                  <th>No. of Posts</th>
+                             </tr>
+                             <?php 
+                                  if( mysqli_num_rows($result) > 0){
+                                    while( $rows = mysqli_fetch_assoc($result) ){
+                                         $c_name= $rows["c_name"];
+                                         $no_of_post = $rows["no_of_post"];
+                                          $c_id = $rows["c_id"];
+                               ?>
+                             <tr>
+                                 <td> <?php echo ucwords($c_name) ; ?></td>
+                                 <td><?php echo $no_of_post; ?></td>
+                                <?php 
+                                        $i++;
+                                        }
+                                    }else{
+                                        echo "no category found";
+                                    }
+                                ?>        
+                             </tr>
+                             </table>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="card shadow " >
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center">Post's Detail</li>
+                    <li class="list-group-item text-left">Total Posts : <?php 
+                        if($total_post_result){
+                            echo mysqli_num_rows($total_post_result);
+                        }
+                    ?></li>
+                    <li class="list-group-item text-center"><a href="manage-post-desc.php"><b>View All Posts</b></a>   </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- 2nd row start -->
+    <div class="row mt-5">
+        <div class="col-lg-6 col-md-6 col-sm-12 "> 
+        <div class="card shadow " >
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center"> <b>Contact Details </b> </li>
+                    <li class="list-group-item"><b>  Address : </b>  <?php echo $address; ?> </li>
+                    <li class="list-group-item"><b> Phone No. :  </b>   <?php echo $phn_no; ?> </li>
+                    <li class="list-group-item"><b>  Email : </b>   <?php echo $email; ?></li>
+                    <li class="list-group-item"><b> Fax No. :   </b> <?php echo $fax_no; ?></li>
+                    <li class="list-group-item text-center"> <a href="contact-us.php"><b>Edit Contact Details</b> </a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-12 "> 
+           <div class="card shadow">
+                 <ul class="list-group list-group-flush">
+                 <li class="list-group-item text-center"> <b>Location </b> </li>
+                 <li class="list-group-item"> <iframe src="https://www.google.com/maps?q=<?php echo $address; ?>&output=embed" style=" height:230px; width:100%;" allowfullscreen="" loading="lazy"></iframe>
+                    </li>
+                </ul>
+           </div>
+        </div>
+    </div>
+    <!-- 3rd row start -->
+    <div class="row mt-5 bg-white shadow">
+        <div class="col-lg-3 col-md-9 col-sm-12 "> 
+        <div class="" >
+                <ul class="list-group list-group-flush pt-5 ">
+                <li class="list-group-item text-center" style="font-size:29px;"> <b>About Us: </b> </li>
+                <li class="list-group-item text-center"> <a class="btn btn-outline-primary" href="about-us.php"><b>Edit About Us </b> </a> </li>
 
-	#text{
-
-		height: 25px;
-		border-radius: 5px;
-		padding: 4px;
-		border: solid thin #aaa;
-		width: 100%;
-	}
-
-	#button{
-
-		padding: 10px;
-		width: 100px;
-		color: white;
-		background-color: lightblue;
-		border: none;
-	}
-
-	#box{
-
-		background-color: grey;
-		margin: auto;
-		width: 300px;
-		padding: 20px;
-	}
-
-	</style>
-<br><br><br><br><br><br>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-9 col-md-9 col-sm-12 "> 
+           <div class=" pt-5">
+                <ul>
+                   <li> <?php echo $about_us;?> </li>
+                </ul>
+           </div>
+        </div>
+    </div>
+</div>
 
 
 
-	<div id="box">
-		
-		<form method="post">
-			<div style="font-size: 20px;margin: 10px;color: white;">Login</div>
-
-			<input id="text" type="text" name="user_name"><br><br>
-			<input id="text" type="password" name="password"><br><br>
-
-			<input id="button" type="submit" value="Login"><br><br>
-
-			<a href="signup.php">Click to Signup</a><br><br>
-		</form>
-	</div>
-</body>
-</html>
+<?php 
+    require_once "include/footer.php";
+?>
